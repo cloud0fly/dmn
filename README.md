@@ -127,11 +127,19 @@ npm run web -- .dmn/web.sqlite 4310
 powershell -NoProfile -File scripts/install-native.ps1
 ```
 
+脚本会按 `-DshRuntimeHome` → `DSH_RUNTIME_HOME` → 注册表中的安装位置 → 常见安装目录的顺序定位 DSH Runtime，装在非默认磁盘时无需改脚本。只有自动探测失败时才需要显式指定：
+
+```powershell
+powershell -NoProfile -File scripts/install-native.ps1 -DshRuntimeHome "D:\Program\Engineer\DeepSeek Harness\resources\runtime"
+```
+
+目标 profile 默认取 `DSH_PROFILE`（未设置时为 `desktop`），也可以用 `-DshProfile` 或 `DSH_PROFILE_DIR` 指定。`-Mode check` 只输出兼容性与探测结果，不写任何文件。
+
 重新启动 Desktop 后点击左侧 **DMN**：在「连接设置」或设置的 DMN 页配置凭据引用，点击「新建话题」并选择 A/B 发送消息。默认数据保存在用户 DSH Home，升级与卸载保留历史；加载、检查与重连都不会调用模型。安装、升级、回退与卸载流程见[原生用户手册](docs/DESKTOP_NATIVE_USER_GUIDE.md)。
 
 ### 兼容的 MCP 接入方式
 
-在项目根目录执行 `npm run desktop:install`，脚本会先备份当前用户的 `~/.dsh/profiles/desktop/cordis.patch.yml`，再追加 `mcp-dmn`；已有同名条目时不覆盖。脚本绑定当前项目绝对路径，移动项目后需要重新检查配置。也可以参考[配置示例](config/desktop.cordis.patch.example.yml)手动合并并替换路径。
+在项目根目录执行 `npm run desktop:install`，脚本会先备份当前 profile 的 `cordis.patch.yml`，再写入 `mcp-dmn` 条目；已有同名条目时不覆盖，重复执行不会重复写入。profile 位置遵循 `DSH_PROFILE_DIR` → `DSH_HOME`（回退到 `~/.dsh`）+ `DSH_PROFILE`（默认 `desktop`）；patch 文件为空或缺失时会用官方模板头初始化，不需要预先手写 YAML。脚本绑定当前项目绝对路径，移动项目后需要重新检查配置。也可以参考[配置示例](config/desktop.cordis.patch.example.yml)手动合并并替换路径。
 
 Desktop 进程必须拥有 `DEEPSEEK_API_KEY` 环境变量；配置只通过 `!!js process.env.DEEPSEEK_API_KEY` 传递引用，不写入密钥值。完整退出 Desktop 后重新启动，添加当前仓库为工作区并创建项目会话。先做只读验证：
 

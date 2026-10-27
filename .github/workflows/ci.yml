@@ -1,0 +1,41 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: verify (node 24, windows)
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24.14.0"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Type check
+        run: npm run check
+
+      - name: Offline tests
+        run: npm test
+
+      - name: Desktop plugin tests
+        run: npm run test:desktop-native
+
+      - name: Plugin bundle must be reproducible
+        run: |
+          npm run desktop:build
+          git diff --exit-code -- plugins/dsh-dmn/lib/client.js

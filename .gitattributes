@@ -1,0 +1,18 @@
+# Normalise line endings for every checkout so generated artifacts (plugins/dsh-dmn/lib/client.js)
+# are reproducible and `npm run desktop:build` leaves the work tree clean.
+* text=auto eol=lf
+
+# PowerShell and batch files stay CRLF for native Windows tooling.
+*.ps1 text eol=crlf
+*.cmd text eol=crlf
+*.bat text eol=crlf
+
+# Binary assets must never be converted.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.gif binary
+*.ico binary
+*.zip binary
+*.tgz binary
