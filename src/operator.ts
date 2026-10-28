@@ -1,3 +1,4 @@
+import {assertSchedulingOwner} from './native-instance.ts';
 import { randomUUID } from 'node:crypto';
 import { z } from 'zod';
 import { parseNodes, parseTopic } from './contracts.ts';
@@ -59,6 +60,28 @@ export class OperatorService {
       this.store.run("UPDATE topics SET status='active' WHERE topic_id=?",request.topicId);
       this.store.run("INSERT INTO events(event_type,topic_id,node_id,message_id,created_at) VALUES('operator.message_queued',?,?,NULL,?)",request.topicId,request.to,stamp);
       refreshNodeState(this.store,request.to,stamp);return {accepted:true,messageId};
+    });
+  }
+  nodePrompt(input:unknown){
+    const {nodeId}=checked(z.strictObject({nodeId:id}),input);
+    if(!this.store.one('SELECT 1 FROM model_nodes WHERE node_id=?',nodeId))fail('NOT_FOUND','Node does not exist.');
+    const row=this.store.one<{revision:number;system_prompt:string|null}>('SELECT revision,system_prompt FROM node_prompts WHERE node_id=?',nodeId);
+    return {nodeId,revision:row?.revision??0,systemPrompt:row?.system_prompt??null};
+  }
+  setNodePrompt(input:unknown){
+    assertSchedulingOwner(this.store.path);
+    const request=checked(z.strictObject({nodeId:id,revision:z.number().int().min(0).max(Number.MAX_SAFE_INTEGER-1),systemPrompt:z.string().trim().min(1).max(8000).nullable(),idempotencyKey:id}),input);
+    return this.store.transaction(()=>{
+      const normalized=JSON.stringify(request),prior=this.store.one<{request_json:string;result_json:string}>('SELECT request_json,result_json FROM node_prompt_requests WHERE node_id=? AND idempotency_key=?',request.nodeId,request.idempotencyKey);
+      if(prior){if(prior.request_json!==normalized)fail('CONFLICT','Prompt request key belongs to different parameters.');return JSON.parse(prior.result_json) as {nodeId:string;revision:number;systemPrompt:string|null};}
+      const current=this.nodePrompt({nodeId:request.nodeId});
+      if(current.revision!==request.revision)fail('CONFLICT','Prompt revision changed; reload before editing.');
+      if(this.store.one("SELECT 1 FROM node_locks WHERE node_id=?",request.nodeId)||this.store.one("SELECT 1 FROM model_turns WHERE node_id=? AND status IN ('running','unknown')",request.nodeId))fail('CONFLICT','Running or unknown node cannot change its prompt.');
+      const result={nodeId:request.nodeId,revision:request.revision+1,systemPrompt:request.systemPrompt};
+      this.store.run('INSERT INTO node_prompts VALUES(?,?,?,?) ON CONFLICT(node_id) DO UPDATE SET revision=excluded.revision,system_prompt=excluded.system_prompt,updated_at=excluded.updated_at',request.nodeId,result.revision,request.systemPrompt,new Date().toISOString());
+      this.store.run('INSERT INTO node_prompt_requests VALUES(?,?,?,?)',request.nodeId,request.idempotencyKey,normalized,JSON.stringify(result));
+      this.store.run("INSERT INTO events(event_type,node_id,payload_json,created_at) VALUES('node.prompt_updated',?,?,?)",request.nodeId,JSON.stringify({operator:this.operator,revision:result.revision,idempotencyKey:request.idempotencyKey}),new Date().toISOString());
+      return result;
     });
   }
   list(){return this.store.all('SELECT node_id AS id,provider,model_id AS model,session_id AS sessionId,status AS state FROM model_nodes ORDER BY node_id');}

@@ -20,7 +20,7 @@ test('CLI init/status is repeatable; status does not create a missing database',
     for (let i = 0; i < 2; i++) {
       const result = run('init', path);
       assert.equal(result.status, 0, result.stderr);
-      assert.equal(JSON.parse(result.stdout).schemaVersion, 7);
+      assert.equal(JSON.parse(result.stdout).schemaVersion, 8);
     }
     const result = run('status', path);
     assert.equal(result.status, 0, result.stderr);

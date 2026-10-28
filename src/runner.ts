@@ -11,7 +11,7 @@ import { TopicManager } from './topic-manager.ts';
 import { refreshNodeState } from './node-state.ts';
 import { type ExecutionLimits } from './execution-contracts.ts';
 export type { ExecutionLimits } from './execution-contracts.ts';
-export type RuntimeInput = { node: ModelNode; topicId: string; turnId: string; prompt: string; resume: boolean; limits: ExecutionLimits };
+export type RuntimeInput = { node: ModelNode; topicId: string; turnId: string; prompt: string; systemPrompt?: string; systemPromptRevision?: number; resume: boolean; limits: ExecutionLimits };
 export type RuntimeResult = { text: string; sessionId: string; usage?: Record<string, number> | undefined; eventOffset?: number | undefined };
 export type Inspection = { state: 'completed'; result: RuntimeResult; receiptId: string } | { state: 'unknown'; reason: string; quiescent: boolean };
 export interface RootRuntime {
@@ -173,7 +173,8 @@ export class TopicRunner {
         const turnId = job.turn_id ?? randomUUID();
         const privateContext = new MemoryManager(this.store,this.now).forPrompt(nodeId,`${envelope?.content ?? operator?.content ?? ''} ${topic.title}`);
         const resume = !!this.store.one('SELECT 1 FROM model_turns WHERE node_id=? AND turn_id<>? AND sdk_receipt_id IS NOT NULL LIMIT 1',nodeId,turnId);
-        const input: RuntimeInput = { node,topicId:job.topic_id,turnId,resume,limits,prompt:JSON.stringify({ dmnTurnId:turnId,nodeId,mode:this.store.one<{interaction_mode:string}>('SELECT interaction_mode FROM topics WHERE topic_id=?',job.topic_id)!.interaction_mode,identity:privateContext.identity,
+        const persona=this.store.one<{system_prompt:string|null;revision:number}>('SELECT system_prompt,revision FROM node_prompts WHERE node_id=?',nodeId);
+        const input: RuntimeInput = { ...(persona?.system_prompt?{systemPrompt:persona.system_prompt,}:{}),systemPromptRevision:persona?.revision??0,node,topicId:job.topic_id,turnId,resume,limits,prompt:JSON.stringify({ dmnTurnId:turnId,nodeId,mode:this.store.one<{interaction_mode:string}>('SELECT interaction_mode FROM topics WHERE topic_id=?',job.topic_id)!.interaction_mode,identity:privateContext.identity,
           topic:{ id:topic.topic_id,title:topic.title,initialPrompt:topic.initial_prompt },privateMemories:privateContext.related,
           incoming:envelope ? { id:envelope.message_id,from:envelope.from_node,to:envelope.to_node,type:envelope.type,content:envelope.content } : operator ? {id:operator.message_id,from:operator.operator_id,to:nodeId,type:'operator',content:operator.content} : null,
           peers:this.store.all('SELECT node_id AS id FROM topic_participants WHERE topic_id=? AND node_id<>? ORDER BY node_id',job.topic_id,nodeId) }) };

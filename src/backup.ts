@@ -8,7 +8,7 @@ import {acquireMaintenance,databasePath,requireNoClients} from './maintenance.ts
 
 const versions=()=>{const p=JSON.parse(readFileSync(new URL('../package.json',import.meta.url),'utf8'));return{sdk:p.dependencies['@deepseek-ai/dsh-sdk-client'] as string,cordis:p.dependencies['@deepseek-ai/cordis'] as string};};
 const safePath=z.string().min(1).max(2048).refine(p=>!/[\\:\0]/.test(p)&&!p.startsWith('/')&&!p.split('/').some(x=>!x||x==='.'||x==='..'));
-const manifestSchema=z.strictObject({format:z.literal(1),createdAt:z.iso.datetime(),database:z.string().min(1),schemaVersion:z.number().int().min(1).max(7),platform:z.string(),sdk:z.string(),cordis:z.string(),runtimePresent:z.boolean(),
+const manifestSchema=z.strictObject({format:z.literal(1),createdAt:z.iso.datetime(),database:z.string().min(1),schemaVersion:z.number().int().min(1).max(8),platform:z.string(),sdk:z.string(),cordis:z.string(),runtimePresent:z.boolean(),
  files:z.array(z.strictObject({path:safePath,bytes:z.number().int().nonnegative(),sha256:z.string().regex(/^[a-f0-9]{64}$/)})).min(1).max(100000)});
 type Manifest=z.output<typeof manifestSchema>;
 const inside=(parent:string,path:string)=>{const r=relative(parent,path);return r===''||(!r.startsWith('..'+sep)&&r!=='..'&&!isAbsolute(r));};
@@ -30,8 +30,8 @@ function checkDatabase(path:string,expected?:number,stopped=false){
  const db=new DatabaseSync(path,{readOnly:true});
  try{
   const v=(db.prepare('PRAGMA user_version').get() as {user_version:number}).user_version;
-  if(v<1||v>7||(expected!==undefined&&expected!==v))fail('STORAGE','Unsupported or mismatched backup schema.');
-  const required=['model_nodes','topics','messages','model_turns',...(v>=7?['user_replies']:[])];
+  if(v<1||v>8||(expected!==undefined&&expected!==v))fail('STORAGE','Unsupported or mismatched backup schema.');
+  const required=['model_nodes','topics','messages','model_turns',...(v>=7?['user_replies']:[]),...(v>=8?['node_prompts','node_prompt_requests']:[])];
   for(const name of required)if(!db.prepare("SELECT 1 FROM sqlite_master WHERE type='table' AND name=?").get(name))fail('STORAGE','Backup does not contain the expected DMN schema.');
   if((db.prepare('PRAGMA integrity_check').get() as {integrity_check:string}).integrity_check!=='ok'||db.prepare('PRAGMA foreign_key_check').all().length)fail('STORAGE','Backup database integrity failed.');
   if(stopped&&(db.prepare("SELECT count(*) n FROM model_turns WHERE status='running'").get() as {n:number}).n)fail('STORAGE','Backup contains an unquiesced running activity.');

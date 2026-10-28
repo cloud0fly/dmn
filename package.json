@@ -33,6 +33,7 @@
     "test:native:ui": "tsx --test tests/native.browser.acceptance.ts",
     "desktop:native:install": "powershell -NoProfile -File scripts/install-native.ps1",
     "desktop:native:package": "powershell -NoProfile -File scripts/package-native.ps1",
+    "test:group-chat:live": "tsx --test tests/group-chat.live.acceptance.ts",
     "test:native:release": "tsx --test tests/native.release.acceptance.ts"
   },
   "dependencies": {

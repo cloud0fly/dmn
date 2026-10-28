@@ -170,7 +170,7 @@ try {
       const db = new DmnStore(path, { readOnly: true });
       try {
         const schemaVersion = db.one<{user_version:number}>('PRAGMA user_version')!.user_version;
-        if (schemaVersion !== 7) fail('STORAGE', 'Database requires an explicit supported migration.');
+        if (schemaVersion !== 8) fail('STORAGE', 'Database requires an explicit supported migration.');
         const count = (sql: string) => db.one<{n:number}>(sql)!.n;
         emit({ schemaVersion, runtimeActive: count("SELECT count(*) AS n FROM model_nodes WHERE status='running'") > 0, counts: {
           nodes: count('SELECT count(*) AS n FROM model_nodes'), topics: count('SELECT count(*) AS n FROM topics'),

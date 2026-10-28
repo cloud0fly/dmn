@@ -26,7 +26,7 @@ test('E01: committed queue survives child-process loss without orderly close', (
   } finally { f.cleanup(); }
 });
 
-test('schema v1 upgrades atomically to v7 and migration reapplication preserves nodes', () => {
+test('schema v1 upgrades atomically to v8 and migration reapplication preserves nodes', () => {
   const dir = mkdtempSync(join(tmpdir(), 'dmn-migration-'));
   const path = join(dir, 'legacy.sqlite');
   try {
@@ -37,7 +37,7 @@ test('schema v1 upgrades atomically to v7 and migration reapplication preserves 
     for (let i = 0; i < 2; i++) {
       const store = new DmnStore(path);
       try {
-        assert.equal(store.one<{ user_version: number }>('PRAGMA user_version')?.user_version, 7);
+        assert.equal(store.one<{ user_version: number }>('PRAGMA user_version')?.user_version, 8);
         assert.equal(store.one<{ tools: string }>('SELECT allowed_tools_json AS tools FROM model_nodes WHERE node_id=?', 'legacy')?.tools, '[]');
         assert.throws(() => new DmnGateway(store).bindNode('legacy').getInbox(), { code: 'FORBIDDEN' });
       } finally { store.close(); }

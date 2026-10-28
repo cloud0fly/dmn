@@ -70,7 +70,8 @@ export class DshRootRuntime implements RootRuntime {
       const personaPath = realpathSync(resolve(workspace, input.node.personaRef));
       const rel = relative(workspace, personaPath);
       if (rel === '..' || rel.startsWith('..\\') || rel.startsWith('../') || isAbsolute(rel)) fail('FORBIDDEN', 'Persona must be inside the project workspace.');
-      const persona = readFileSync(personaPath, 'utf8');
+      const persona = input.systemPrompt ?? readFileSync(personaPath, 'utf8');
+      if(input.systemPrompt!==undefined&&(typeof input.systemPrompt!=='string'||!input.systemPrompt.trim()||input.systemPrompt.length>8000))fail('VALIDATION','Invalid custom system prompt.');
       if (persona.length > 16000) fail('VALIDATION', 'Persona exceeds the configured bound.');
       const env: NodeJS.ProcessEnv = {};
       for (const key of ['PATH','Path','SystemRoot','WINDIR','COMSPEC','PATHEXT','TEMP','TMP','USERPROFILE','HOME','HTTP_PROXY','HTTPS_PROXY','ALL_PROXY','NO_PROXY','http_proxy','https_proxy','all_proxy','no_proxy','NODE_EXTRA_CA_CERTS','SSL_CERT_FILE','SSL_CERT_DIR']) {

@@ -21,13 +21,13 @@ export class DmnStore {
       this.db = new DatabaseSync(this.path,options);
       if(options.readOnly){
         this.db.exec('PRAGMA foreign_keys = ON; PRAGMA busy_timeout = 5000;');
-        if(this.one<{user_version:number}>('PRAGMA user_version')!.user_version!==7)fail('STORAGE','Read-only access requires an explicit supported migration.');
+        if(this.one<{user_version:number}>('PRAGMA user_version')!.user_version!==8)fail('STORAGE','Read-only access requires an explicit supported migration.');
         return;
       }
       this.db.exec('PRAGMA foreign_keys = ON; PRAGMA busy_timeout = 5000; PRAGMA journal_mode = WAL; PRAGMA synchronous = FULL;');
       this.transaction(() => {
         const version = this.one<{ user_version: number }>('PRAGMA user_version')!.user_version;
-        if (version > 7 || version < 0) fail('STORAGE', 'Unsupported database schema version.');
+        if (version > 8 || version < 0) fail('STORAGE', 'Unsupported database schema version.');
         // Pre-v5 activities have no exact host input snapshot. Do not invent one or
         // let new scheduling resume a node whose prior activity cannot be proved.
         const legacy=version>0&&version<5?this.all<{turn_id:string;node_id:string;topic_id:string;input_message_id:string|null}>("SELECT turn_id,node_id,topic_id,input_message_id FROM model_turns WHERE status IN ('running','unknown')"):[];
@@ -73,6 +73,10 @@ export class DmnStore {
         if (version < 7) {
           this.db.exec(readFileSync(new URL('../sql/007_user_replies.sql', import.meta.url), 'utf8'));
           this.db.exec('PRAGMA user_version = 7;');
+        }
+        if (version < 8) {
+          this.db.exec(readFileSync(new URL('../sql/008_node_prompts.sql', import.meta.url), 'utf8'));
+          this.db.exec('PRAGMA user_version = 8;');
         }
         for(const turn of legacy){
           const lock=this.one<{turn_id:string}>('SELECT turn_id FROM node_locks WHERE node_id=?',turn.node_id);

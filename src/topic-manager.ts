@@ -14,7 +14,7 @@ export class TopicManager {
     const count = (sql:string) => this.store.one<{n:number}>(sql,topicId)!.n;
     return { id: topic.topic_id, state: topic.status, pauseReason: topic.pause_reason, epoch: topic.control_epoch,
       usedTurns: topic.used_model_turns, maxTurns: topic.max_model_turns, deadlineAt: topic.deadline_at,
-      outcomes,deadLetters:count('SELECT count(*) n FROM dead_letters WHERE topic_id=?'),
+      outcomes,pendingMessages:count("SELECT count(*) n FROM deliveries d JOIN messages m ON m.message_id=d.message_id WHERE m.topic_id=? AND d.status IN ('queued','retry')"),latestActivity:this.store.one<{nodeId:string;state:string;action:string|null;suppressed:number}>('SELECT node_id AS nodeId,status AS state,output_action AS action,effects_suppressed AS suppressed FROM model_turns WHERE topic_id=? ORDER BY rowid DESC LIMIT 1',topicId)??null,deadLetters:count('SELECT count(*) n FROM dead_letters WHERE topic_id=?'),
       outputErrors:{invalidJson:count("SELECT count(*) n FROM events WHERE topic_id=? AND event_type='turn.output_invalid_json'"),
         invalidEnvelope:count("SELECT count(*) n FROM events WHERE topic_id=? AND event_type='turn.output_invalid_envelope'")},
       nodes: this.store.all('SELECT node_id,max_turns,used_turns,max_input_tokens,reserved_input_tokens,max_output_tokens,reserved_output_tokens,max_cost,reserved_cost,deadline_at FROM node_budgets WHERE topic_id=? ORDER BY node_id', topicId) };

@@ -13,3 +13,9 @@ test('N3 maintenance uses a separate capability route and never crosses from bus
  assert.equal((await admin(request('x-dmn-operator'))).status,403);assert.equal((await business(request('x-dmn-maintenance'))).status,403);
  assert.equal((await admin(request('x-dmn-maintenance'))).status,200);assert.deepEqual(calls,[['backup',{},'a'.repeat(32)]]);
 });
+
+test('G1 prompt operations require a trusted origin and exact bound instance',async()=>{
+ const calls=[],bridge=createBridge({async request(...args){calls.push(args);return{revision:1};}});
+ for(const method of ['nodePrompt','setNodePrompt']){const make=headers=>new Request('http://local/api/dmn-native/operate',{method:'POST',headers:{'content-type':'application/json','x-dmn-operator':'1',...headers},body:JSON.stringify({method,params:{nodeId:'a'}})});assert.equal((await bridge(make({}))).status,400);assert.equal((await bridge(make({'x-dmn-instance':'a'.repeat(32),origin:'https://evil.test'}))).status,403);assert.equal((await bridge(make({'x-dmn-instance':'a'.repeat(32)}))).status,200);}
+ assert(calls.every(c=>c[2]==='a'.repeat(32)));
+});

@@ -31,10 +31,10 @@ export async function startNativeService(database:string,nodes:unknown,runtime:R
    }
    if(method==='state')return{protocol:1,instanceId:ownership.descriptor.instanceId,pid:process.pid,phase,credentialConfigured:options.canInfer!==false,nodes:operator.list(),topics:operator.listTopics(),modelCalls:liveStore.one<{n:number}>("SELECT count(*) n FROM model_turns WHERE status<>'queued'")!.n};
    if(['start','send','resume','pump'].includes(method)&&options.canInfer===false)fail('FORBIDDEN','Configure the provider credential before inference.');
-   if(['start','send','pause','resume','close','pump'].includes(method)&&(phase!=='ready'||management))fail('CONFLICT','Native service is stopping; writes are refused.');
+   if(['start','send','pause','resume','close','pump','setNodePrompt'].includes(method)&&(phase!=='ready'||management))fail('CONFLICT','Native service is stopping; writes are refused.');
    let result:unknown;
    switch(method){
-    case'nodes':return operator.list();case'topics':return operator.listTopics();case'topicState':return operator.get(params);case'messages':return operator.messages(params);case'metrics':return operator.metrics(params);
+    case'nodePrompt':return operator.nodePrompt(params);case'setNodePrompt':return operator.setNodePrompt(params);case'nodes':return operator.list();case'topics':return operator.listTopics();case'topicState':return operator.get(params);case'messages':return operator.messages(params);case'metrics':return operator.metrics(params);
     case'queue':return{pending:recovery.list(),turns:liveStore.all('SELECT turn_id AS turnId,node_id AS nodeId,topic_id AS topicId,status,attempt_number AS attempt,output_action AS action,effects_suppressed AS suppressed FROM model_turns ORDER BY rowid DESC LIMIT 100'),deadLetters:liveStore.all('SELECT * FROM dead_letters ORDER BY created_at DESC LIMIT 100')};case'proof':return recovery.inspect(params);
     case'start':result=operator.start(params);break;case'send':result=operator.send(params);break;case'pause':return operator.pause(params);case'resume':result=operator.resume(params);break;case'close':return operator.close(params);case'pump':result={accepted:true};break;
     default:fail('VALIDATION','Unsupported native operation.');

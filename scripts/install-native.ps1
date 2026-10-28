@@ -16,7 +16,7 @@ $nodeVersion=(& $nodeCommand --version).Trim().TrimStart('v')
 if($nodeVersion -notmatch '^24\.' -or [version]$nodeVersion -lt [version]'24.14.0'){throw 'Node >=24.14.0 and npm are required.'}
 $package=Get-Content -LiteralPath (Join-Path $taskRoot 'package.json') -Raw | ConvertFrom-Json
 if($package.dependencies.'@deepseek-ai/dsh-sdk-client' -ne '0.2.1-rc.3'){throw 'SDK compatibility check failed.'}
-if($Mode -eq 'check'){@{compatible=$true;desktop=$runtime.desktopVersion;node=$nodeVersion;protocol=1;schema=7} | ConvertTo-Json -Compress;return}
+if($Mode -eq 'check'){@{compatible=$true;desktop=$runtime.desktopVersion;node=$nodeVersion;protocol=1;schema=8} | ConvertTo-Json -Compress;return}
 if(Get-Process -Name 'DeepSeek Harness' -ErrorAction SilentlyContinue){throw 'Exit DSH Desktop normally before installation, upgrade or uninstall. Do not force-kill an active SDK.'}
 $dshHome=if($env:DSH_HOME){$env:DSH_HOME}else{Join-Path $env:USERPROFILE '.dsh'}
 $profile=Join-Path $dshHome 'profiles/desktop'

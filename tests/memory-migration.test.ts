@@ -20,7 +20,7 @@ test('P1 migration preserves v3 memory rows, normalizes dedup keys, rebuilds Chi
     for (let n = 0; n < 2; n++) {
       const store = new DmnStore(path);
       try {
-        assert.equal(store.one<{ user_version: number }>('PRAGMA user_version')?.user_version, 7);
+        assert.equal(store.one<{ user_version: number }>('PRAGMA user_version')?.user_version, 8);
         const api = new MemoryManager(store).bindNode('a');
         assert.equal(api.search({ query: '持久化队列' })[0]?.id, 'legacy');
         assert.equal(api.search({ query: 'rollback' })[0]?.id, 'legacy');

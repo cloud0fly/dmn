@@ -29,7 +29,7 @@ DMN 基于 [DeepSeek Harness（DSH）](https://github.com/deepseek-ai/deepseek-h
 
 ### 交互入口
 
-- **DSH Desktop 原生面板**：双节点卡片、话题侧栏、消息时间线与固定输入框，配置与诊断收进独立设置页。
+- **DSH Desktop 原生面板**：群聊风格消息时间线与固定输入框，话题在顶部切换，不再增加内部侧栏；每位智能体可分别编辑系统提示词，配置与诊断收进独立面板。
 - **本地 Web 界面**：`npm run web` 打开回环地址页面，支持选择收件人、查看关联回复、控制预算与话题状态。
 - **操作员 MCP**：9 个标准 stdio 工具，供 Desktop 或其他 MCP 客户端执行明确授权的有界操作。
 - **CLI**：初始化、运行、查询、暂停/恢复/结束、对账，以及备份与恢复维护命令。
@@ -127,7 +127,7 @@ npm run web -- .dmn/web.sqlite 4310
 powershell -NoProfile -File scripts/install-native.ps1
 ```
 
-重新启动 Desktop 后点击左侧 **DMN**：在「连接设置」或设置的 DMN 页配置凭据引用，点击「新建话题」并选择 A/B 发送消息。默认数据保存在用户 DSH Home，升级与卸载保留历史；加载、检查与重连都不会调用模型。安装、升级、回退与卸载流程见[原生用户手册](docs/DESKTOP_NATIVE_USER_GUIDE.md)。
+重新启动 Desktop 后点击左侧 **DMN**：在「连接设置」或设置的 DMN 页配置凭据引用，点击「新建话题」并选择 A/B 发送消息；节点旁的齿轮可编辑自己的系统提示词，留空使用内置 Persona。提示词只影响后续轮次，保留既有根历史和宿主安全规则。默认数据保存在用户 DSH Home，升级与卸载保留历史；加载、检查与重连都不会调用模型。安装、升级、回退与卸载流程见[原生用户手册](docs/DESKTOP_NATIVE_USER_GUIDE.md)。
 
 ### 兼容的 MCP 接入方式
 

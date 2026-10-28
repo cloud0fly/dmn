@@ -17,7 +17,7 @@ test('P3 v5 migration preserves existing seed/result and allows multiple distinc
       INSERT INTO runtime_results VALUES('seed','a','{"text":"retained"}','2026-10-26'); PRAGMA user_version=5;`);old.close();
     for(let pass=0;pass<2;pass++){
       const store=new DmnStore(path);try{
-        assert.equal(store.one<{user_version:number}>('PRAGMA user_version')!.user_version,7);
+        assert.equal(store.one<{user_version:number}>('PRAGMA user_version')!.user_version,8);
         assert.equal(store.one<{result_json:string}>('SELECT result_json FROM runtime_results')!.result_json,'{"text":"retained"}');
         if(pass===0)for(const key of ['one','two']){
           store.run("INSERT INTO operator_messages VALUES(?,'t','desktop-user','a','text',?,'2026-10-26')",key,key);

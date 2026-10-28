@@ -60,6 +60,6 @@ for(const version of [1,2,3,4])test(`P5-H1 v${version} upgrade quarantines legac
   assert.equal(store.one<{used_model_turns:number}>('SELECT used_model_turns FROM topics')!.used_model_turns,1);
   assert.equal(store.one<{n:number}>('SELECT count(*) n FROM runtime_results')!.n,0);
   store.close();store=new DmnStore(database);assert.equal(store.one<{n:number}>("SELECT count(*) n FROM events WHERE event_type='turn.legacy_quarantined'")!.n,1);
-  store.close();store=undefined;await createBackup(database,join(dir,'backup'));assert.equal((await verifyBackup(join(dir,'backup'))).schemaVersion,7);
+  store.close();store=undefined;await createBackup(database,join(dir,'backup'));assert.equal((await verifyBackup(join(dir,'backup'))).schemaVersion,8);
  }finally{store?.close();rmSync(dir,{recursive:true,force:true});}
 });

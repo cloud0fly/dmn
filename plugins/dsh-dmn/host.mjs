@@ -13,7 +13,7 @@ export function createReadOnlyStatus(path=database){return async request=>{
  if(request.method!=='GET')return Response.json({error:'READ_ONLY'},{status:405});
  if([...new URL(request.url).searchParams.keys()].length)return Response.json({error:'VALIDATION'},{status:400});
  let db;
- try{db=new DatabaseSync(path,{readOnly:true});if(db.prepare('PRAGMA user_version').get().user_version!==7)throw Error();
+ try{db=new DatabaseSync(path,{readOnly:true});if(![7,8].includes(db.prepare('PRAGMA user_version').get().user_version))throw Error();
   return Response.json({protocol:1,mode:'read-only-probe',nodes:db.prepare('SELECT node_id AS id,model_id AS model,status AS state FROM model_nodes ORDER BY node_id').all(),modelCalls:db.prepare('SELECT count(*) n FROM model_turns').get().n},{headers:{'cache-control':'no-store'}});
  }catch{return Response.json({error:'PROBE_UNAVAILABLE'},{status:503});}finally{db?.close();}
 };}

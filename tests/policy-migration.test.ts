@@ -22,7 +22,7 @@ test('P2 v4 migration preserves spent topic/node reservations and legacy authori
     try{
       assert.equal(JSON.parse(store.one<{limits_json:string}>('SELECT limits_json FROM topic_execution')!.limits_json).maxAttempts,3);
       const manager=new TopicManager(store,()=>new Date('2026-10-26T00:00:00Z'));manager.authorize('topic',limits);
-      assert.equal(store.one<{user_version:number}>('PRAGMA user_version')?.user_version,7);
+      assert.equal(store.one<{user_version:number}>('PRAGMA user_version')?.user_version,8);
       assert.equal(store.one<{used_turns:number;reserved_input_tokens:number}>("SELECT * FROM node_budgets WHERE node_id='a'")?.reserved_input_tokens,8000);
       assert.equal(manager.get('topic').usedTurns,1);
       new TopicRunner(store,new DmnGateway(store),{async run(){throw Error('must not call');}},()=>new Date('2026-10-26T00:00:00Z')).seed('topic','a');

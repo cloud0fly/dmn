@@ -30,7 +30,7 @@ test('P3 start is durable and idempotent, conflict rolls back and connection alo
     assert.throws(()=>f.service.start({...f.request,startNode:'b',idempotencyKey:'start-1'}),{code:'CONFLICT'});
     assert.equal(f.store.one<{n:number}>('SELECT count(*) n FROM topics')!.n,1);
     assert.equal(f.inputs.length,0);
-    await f.service.drain();assert.equal(f.inputs.length,1);
+    await f.service.drain();assert.equal(f.inputs.length,1);assert.equal(f.service.get({topicId:first.topicId}).latestActivity?.action,'silent');assert.equal(f.service.get({topicId:first.topicId}).pendingMessages,0);
   }finally{f.cleanup();}
 });
 

@@ -1,7 +1,7 @@
 import{existsSync}from'node:fs';import{DatabaseSync}from'node:sqlite';
 export function validateBoundModels(settings){if(!existsSync(settings.database))return;let db;try{db=new DatabaseSync(settings.database,{readOnly:true});const rows=db.prepare('SELECT node_id,model_id FROM model_nodes').all();for(const row of rows){const index=['deepseek','reviewer'].indexOf(row.node_id);if(index<0||row.model_id!==settings.models[index])throw Error('IMMUTABLE_NODE_ROUTE');}}finally{db?.close();}}
 export function createSettingsRoute({store,credentials,change}){
- const read=async()=>{const settings=store.read();return{settings,credentialConfigured:!!(await credentials?.describe(settings.credentialRef))?.configured||(settings.credentialRef==='DMN_DEEPSEEK_API_KEY'&&!!process.env.DEEPSEEK_API_KEY),compatibility:{desktop:'0.2.1-rc.3',sdk:'0.2.1-rc.3',protocol:1,schema:7},inferenceStarted:false};};
+ const read=async()=>{const settings=store.read();return{settings,credentialConfigured:!!(await credentials?.describe(settings.credentialRef))?.configured||(settings.credentialRef==='DMN_DEEPSEEK_API_KEY'&&!!process.env.DEEPSEEK_API_KEY),compatibility:{desktop:'0.2.1-rc.3',sdk:'0.2.1-rc.3',protocol:1,schema:8},inferenceStarted:false};};
  return async request=>{try{
   if([...new URL(request.url).searchParams.keys()].length)throw Error('VALIDATION');
   if(request.method==='GET')return Response.json(await read(),{headers:{'cache-control':'no-store'}});

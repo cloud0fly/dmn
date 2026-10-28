@@ -19,7 +19,7 @@ test('P5 paired backup refuses active clients; verified original-location restor
   store=new DmnStore(db);store.run("INSERT INTO model_nodes(node_id,provider,model_id,session_id,persona_ref,memory_namespace) VALUES('a','p','m','fixed-root','persona','memory:a')");
   mkdirSync(db+'.runtime/a/sessions',{recursive:true});writeFileSync(db+'.runtime/a/sessions/session.v4.jsonl','private history\n');
   await assert.rejects(createBackup(db,bundle),{code:'CONFLICT'});store.close();store=undefined;
-  await createBackup(db,bundle);const report=await verifyBackup(bundle);assert.equal(report.schemaVersion,7);assert.equal(report.files,2);
+  await createBackup(db,bundle);const report=await verifyBackup(bundle);assert.equal(report.schemaVersion,8);assert.equal(report.files,2);
   await assert.rejects(createBackup(db,bundle),{code:'CONFLICT'});
   await assert.rejects(restoreBackup(bundle,join(dir,'other.sqlite')),{code:'FORBIDDEN'});
   await assert.rejects(restoreBackup(bundle,db),{code:'CONFLICT'});

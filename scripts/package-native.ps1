@@ -16,7 +16,7 @@ try{
  Add-Type -AssemblyName System.IO.Compression
  Add-Type -AssemblyName System.IO.Compression.FileSystem
  $archive=[IO.Compression.ZipFile]::Open($zip,[IO.Compression.ZipArchiveMode]::Update)
- try{$entry=$archive.CreateEntry('release-manifest.json');$writer=[IO.StreamWriter]::new($entry.Open());try{$writer.Write((@{version=$package.version;commit=$revision;desktop='0.2.1-rc.3';sdk='0.2.1-rc.3';protocol=1;schema=7;dependencies='npm ci using package-lock.json';createdAt=[DateTime]::UtcNow.ToString('o')} | ConvertTo-Json))}finally{$writer.Dispose()}}finally{$archive.Dispose()}
+ try{$entry=$archive.CreateEntry('release-manifest.json');$writer=[IO.StreamWriter]::new($entry.Open());try{$writer.Write((@{version=$package.version;commit=$revision;desktop='0.2.1-rc.3';sdk='0.2.1-rc.3';protocol=1;schema=8;dependencies='npm ci using package-lock.json';createdAt=[DateTime]::UtcNow.ToString('o')} | ConvertTo-Json))}finally{$writer.Dispose()}}finally{$archive.Dispose()}
  $stream=[IO.File]::OpenRead($zip);$hasher=[Security.Cryptography.SHA256]::Create()
  try{$hash=([BitConverter]::ToString($hasher.ComputeHash($stream))).Replace('-','').ToLowerInvariant()}finally{$stream.Dispose();$hasher.Dispose()}
  "$hash  $([IO.Path]::GetFileName($zip))" | Set-Content -LiteralPath ($zip+'.sha256') -Encoding ascii
