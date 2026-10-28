@@ -15,7 +15,7 @@ powershell -NoProfile -File scripts/install-native.ps1
 
 ## 首次配置
 
-打开左侧 DMN 的“连接设置”（顶部齿轮也可进入），或官方设置的 DMN 页。配置数据库绝对路径、日志目录、提供商凭据引用与两节点模型。默认数据在 DSH Home/dmn/instances/default/queue.sqlite，日志在 dmn/logs，普通配置在 dmn/settings.json；代码更新与卸载不会删除这些文件。已有实例须选择原数据库和对应模型，节点会话及记忆命名空间不可重绑。日志只记录生命周期事件/PID，不记录消息、私有 Prompt 或密钥。
+打开左侧“群聊” 的“连接设置”（顶部齿轮也可进入），或官方设置的“群聊”页。配置数据库绝对路径、日志目录、提供商凭据引用与两节点模型。默认数据在 DSH Home/dmn/instances/default/queue.sqlite，日志在 dmn/logs，普通配置在 dmn/settings.json；代码更新与卸载不会删除这些文件。已有实例须选择原数据库和对应模型，节点会话及记忆命名空间不可重绑。日志只记录生命周期事件/PID，不记录消息、私有 Prompt 或密钥。
 
 默认凭据引用 DMN_DEEPSEEK_API_KEY。可以在密码输入框保存新值到官方 DSH 安全凭据服务，普通文件只保存引用；留空表示保留。默认引用缺失时才使用启动环境 DEEPSEEK_API_KEY，其他自定义引用不回退。保存后只读重连，不执行模型。只读检查只报告凭据是否存在，并非计费模型探测；真实调用仅由明确话题/输入授权触发。
 
