@@ -15,7 +15,7 @@ test('N0 host exposes only fixed-database public metadata and never writes or in
 });
 test('N0 host registration is owned and disposed; bad storage errors omit raw paths',async()=>{
  let route,removed=0;const effects=[];apply({effect(fn){effects.push(fn());},connection:{fetch:{register(value){route=value;return()=>removed++;}}}});
- assert.deepEqual(route.methods,['GET']);for(const dispose of effects.reverse())dispose();assert.equal(removed,4);
+ assert.deepEqual(route.methods,['GET']);for(const dispose of effects.reverse())dispose();assert.equal(removed,6);
  const response=await createReadOnlyStatus('nonexistent-private-path')(new Request('http://localhost/api/dmn-native/probe'));assert.equal(response.status,503);assert(!JSON.stringify(await response.json()).includes('nonexistent-private-path'));
 });
 test('N0 built client declares only native public slots and no HTML execution/model submission',()=>{

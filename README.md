@@ -4,7 +4,7 @@
 
 DMN 基于 [DeepSeek Harness（DSH）](https://github.com/deepseek-ai/deepseek-harness) TypeScript SDK 实现。用户创建话题后，节点可以在轮数、时间以及 Token/估算费用预算内回复和追问；达到上限后由宿主停止。每个节点都是独立的 **DSH 根 Session**，不存在 Subagent 或代理父子关系。
 
-当前版本支持同一个官方 Provider 下已验证的两条模型路由：`deepseek-flash` 与 `deepseek-v4-pro`。运行环境为 Windows + Node.js 24，原生面板支持 DSH Desktop `0.2.1-rc.3`。
+原生面板现在可读取 DSH 已注册的模型，为 A/B 分别选择 Provider 和模型，复用 DSH 凭据。更换模型会创建新群聊，保留旧会话和记录。运行环境为 Windows + Node.js 24，支持 DSH Desktop `0.2.1-rc.3`。当前真实共享路径已完成 DeepSeek Account 生成；GLM 返回 `INVALID_REQUEST`，跨 Provider 多轮验收尚未通过，详见[验收记录](docs/DSH_SHARED_MODELS_IMPLEMENTATION.md)。
 
 ## 功能特性
 
@@ -30,6 +30,7 @@ DMN 基于 [DeepSeek Harness（DSH）](https://github.com/deepseek-ai/deepseek-h
 ### 交互入口
 
 - **DSH Desktop 原生面板**：群聊风格消息时间线与固定输入框，话题在顶部切换，不再增加内部侧栏；每位智能体可分别编辑系统提示词，配置与诊断收进独立面板。
+- **共享 DSH 模型**：顶部“选择模型”为 A/B 分别选择已注册文本模型；应用时创建独立的新群聊，复制对应系统提示词，旧历史和私有记忆留在原群聊，可随时切回。选择或应用模型不会触发推理；目录可见不代表认证与生成已验证。
 - **本地 Web 界面**：`npm run web` 打开回环地址页面，支持选择收件人、查看关联回复、控制预算与话题状态。
 - **操作员 MCP**：9 个标准 stdio 工具，供 Desktop 或其他 MCP 客户端执行明确授权的有界操作。
 - **CLI**：初始化、运行、查询、暂停/恢复/结束、对账，以及备份与恢复维护命令。
@@ -59,9 +60,9 @@ flowchart LR
 | DSH Runtime / SDK | 项目依赖固定为 `0.2.1-rc.3` |
 | DSH Desktop | 仅原生面板需要；已验证 `0.2.1-rc.3` |
 | MCP TypeScript SDK | `2.4.0` |
-| 模型凭据 | 进程环境变量 `DEEPSEEK_API_KEY` |
+| 模型凭据 | 原生共享模式复用 DSH；独立 CLI/Web 使用 `DEEPSEEK_API_KEY` |
 
-命令行运行使用项目内的 DSH Runtime，不依赖全局 `dsh`。Desktop Profile 与节点 SDK Profile 相互独立。仅修改示例中的 Provider/Model 字符串不能自动获得新路由支持，当前 Runtime Adapter 只允许已验证的两条路由。
+命令行运行使用项目内的 DSH Runtime，不依赖全局 `dsh`。独立 CLI/Web 保留 `deepseek-official` 的 `deepseek-flash` / `deepseek-v4-pro` 两条路由；自由选择 DSH 模型需要原生插件的 Host 代理。节点 SDK Profile 仍独立，不复制 Desktop 的凭据、会话与工具权限。仅修改示例路由字符串不能启用共享能力。
 
 ## 快速开始
 

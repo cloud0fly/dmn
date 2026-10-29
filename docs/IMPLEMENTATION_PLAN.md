@@ -126,6 +126,8 @@ P5 前置安全修复已完成：统一物理路径身份，拒绝悬空/硬链�
 
 ## P6 — 多节点与跨 Provider
 
+2026-10-29：按用户追加授权实施 P6-A，仅双节点共享 DSH 模型目录、Host 生成代理及人工选择；第三节点不在本轮范围。离线、真实 SDK 模拟 Host 与原生选择已通过；真实 DeepSeek Account 完成一轮并投递给 GLM，GLM 返回 `INVALID_REQUEST`，跨 Provider 多轮验收未通过。P6 不标记完成。见 [契约](DSH_SHARED_MODELS_CONTRACT.md) 与 [实现及验收](DSH_SHARED_MODELS_IMPLEMENTATION.md)。
+
 目标：在可靠的双节点基础上扩展为多模型消息网络。
 
 工作项按顺序执行：

@@ -1,0 +1,5 @@
+import{StringDecoder}from'node:string_decoder';import{createConnection}from'node:net';import{randomUUID}from'node:crypto';
+export function brokerRequest(descriptor,method,params){return new Promise((resolve,reject)=>{
+ const id=randomUUID(),socket=createConnection(descriptor.address);const decoder=new StringDecoder('utf8');let buffer='',done=false;const finish=(error,result)=>{if(done)return;done=true;socket.destroy();error?reject(Error(error)):resolve(result);};socket.setTimeout(75000,()=>finish('BROKER_UNKNOWN'));socket.on('error',()=>finish('BROKER_UNKNOWN'));socket.on('end',()=>{if(!done)finish('BROKER_UNKNOWN');});
+ socket.on('connect',()=>socket.write(JSON.stringify({id,token:descriptor.token,method,params})+'\n'));socket.on('data',chunk=>{buffer+=decoder.write(chunk);if(Buffer.byteLength(buffer)>8*1024*1024)return finish('BROKER_LIMIT');if(!buffer.includes('\n'))return;try{const x=JSON.parse(buffer.split('\n')[0]);if(x.id!==id)return finish('BROKER_PROTOCOL');x.ok?finish(null,x.result):finish(x.error||'BROKER_UNKNOWN');}catch{finish('BROKER_PROTOCOL');}});
+ });}

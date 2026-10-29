@@ -1,6 +1,6 @@
 {
   "name": "dsh-dmn",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "description": "DMN native Desktop integration",
   "type": "module",
   "main": "host.mjs",
@@ -18,7 +18,13 @@
     "service-manager.mjs",
     "bridge.mjs",
     "settings.mjs",
-    "settings-route.mjs"
+    "settings-route.mjs",
+    "model-catalog.mjs",
+    "model-broker.mjs",
+    "model-rooms.mjs",
+    "prepare-room.mjs",
+    "broker-client.mjs",
+    "llm-proxy.mjs"
   ],
   "engines": {
     "dsh": "0.2.1-rc.3"

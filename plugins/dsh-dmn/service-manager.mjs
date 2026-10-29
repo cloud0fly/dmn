@@ -13,7 +13,7 @@ export function pipeRequest(descriptor,method,params={},ownerToken){return new P
  socket.on('connect',()=>{const message=JSON.stringify({protocol:1,id,token:descriptor.token,method,params,...(ownerToken?{ownerToken}:{})});if(Buffer.byteLength(message)>65536)return finish('VALIDATION');socket.write(message+'\n');});
  socket.on('data',chunk=>{bytes+=chunk.length;if(bytes>10*1024*1024)return finish('STORAGE');buffer+=decoder.write(chunk);if(!buffer.includes('\n'))return;try{const x=JSON.parse(buffer.split('\n')[0]);if(x.id!==id)throw Error();x.ok?finish(undefined,x.result):finish(x.error?.code??'STORAGE');}catch{finish('PROTOCOL');}});
  });}
-export function createServiceManager({database=join(root,'.dmn/native-dev/queue.sqlite'),credential=()=>undefined,nodePath,models,log=()=>{}}={}){
+export function createServiceManager({database=join(root,'.dmn/native-dev/queue.sqlite'),credential=()=>undefined,nodePath,models,sharedRoutes,host,log=()=>{}}={}){
  mkdirSync(dirname(database),{recursive:true});if(existsSync(database)){const leaf=lstatSync(database);if(leaf.isSymbolicLink()||!leaf.isFile()||leaf.nlink>1)throw Error('FORBIDDEN');}const canonical=existsSync(database)?realpathSync(database):join(realpathSync(dirname(database)),database.split(/[\\/]/).at(-1));
  const instanceId=createHash('sha256').update(canonical).digest('hex').slice(0,32);
  let connection,starting,child,ownerToken,closed=false,maintaining=false,maintenanceTask;
@@ -22,7 +22,7 @@ export function createServiceManager({database=join(root,'.dmn/native-dev/queue.
  async function connect(){if(closed)throw Error('STOPPING');if(connection)return connection;if(starting)return starting;
  starting=(async()=>{const existing=discover();if(existing){await pipeRequest(existing,'state');return connection=existing;}
  const bundled=join(dirname(process.execPath),'resources/runtime/primary-runtime/dependencies/node/bin/node.exe');const executable=nodePath??(existsSync(bundled)?bundled:process.execPath);
- const key=await credential();const env={...process.env};delete env.ELECTRON_RUN_AS_NODE;if(key)env.DEEPSEEK_API_KEY=key;else delete env.DEEPSEEK_API_KEY;if(models)env.DMN_NODE_MODELS=JSON.stringify(models);
+ const key=await credential();const env={...process.env};delete env.ELECTRON_RUN_AS_NODE;if(key)env.DEEPSEEK_API_KEY=key;else delete env.DEEPSEEK_API_KEY;if(models)env.DMN_NODE_MODELS=JSON.stringify(models);if(sharedRoutes){if(!host)throw Error('HOST_MODELS_UNAVAILABLE');env.DMN_NODE_ROUTES=JSON.stringify(sharedRoutes);env.DMN_HOST_MODEL_BROKER=JSON.stringify(await host());delete env.DEEPSEEK_API_KEY;}else{delete env.DMN_NODE_ROUTES;delete env.DMN_HOST_MODEL_BROKER;}
  return await new Promise((resolve,reject)=>{let settled=false;child=fork(join(root,'src/native-service-main.ts'),[canonical,root],{execPath:executable,execArgv:['--import','tsx'],cwd:root,windowsHide:true,env,stdio:['ignore','ignore','ignore','ipc']});
  const timeout=setTimeout(()=>{if(!settled){settled=true;child.disconnect();reject(Error('START_TIMEOUT'));}},20000);
  child.once('message',message=>{if(settled)return;settled=true;clearTimeout(timeout);if(message.ready){connection=message.descriptor;ownerToken=message.ownerToken;log({event:'service.ready',pid:connection.pid});resolve(connection);}else reject(Error('INSTANCE_UNAVAILABLE'));});

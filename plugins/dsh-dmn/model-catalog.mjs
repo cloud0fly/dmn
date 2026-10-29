@@ -1,0 +1,6 @@
+const bounded=(task,ms=4000)=>Promise.race([Promise.resolve().then(task),new Promise((_,reject)=>{const t=setTimeout(()=>reject(Error('CATALOG_TIMEOUT')),ms);t.unref?.();})]);
+export async function listSharedModels(llm){
+ const providers=llm.listProviders().slice(0,64),result=await Promise.all(providers.map(async p=>{
+  try{const models=await bounded(()=>llm.listModels(p.id));const entries=await Promise.all(models.slice(0,256).map(async m=>{try{const info=await bounded(()=>llm.resolveModelInfo(p.id,m.id));return{provider:p.id,providerName:String(p.name).slice(0,128),model:m.id,name:String(m.name||m.id).slice(0,256),contextWindow:info.context?.contextWindow??null,selectable:!!info.context&&info.context.contextWindow>=32768&&(!info.inputModalities||info.inputModalities.includes('text'))};}catch{return{provider:p.id,providerName:String(p.name).slice(0,128),model:m.id,name:String(m.name||m.id).slice(0,256),contextWindow:null,selectable:false};}}));return{provider:p.id,models:entries};}catch{return{provider:p.id,models:[],error:'CATALOG_UNAVAILABLE'};}
+ }));return{models:result.flatMap(r=>r.models),errors:result.filter(r=>r.error).map(r=>({provider:r.provider,error:r.error})),inferenceStarted:false};
+}
