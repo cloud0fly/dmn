@@ -1,6 +1,6 @@
 # P6-A：共享 DSH 模型与选择
 
-2026-10-29，原生插件 v0.3.0。实现与离线验收完成，真实跨 Provider 多轮验收 **FAIL，P6 尚未完成**。本轮仅两节点，不引入第三节点、Subagent 或新的自动化授权。
+2026-10-29，原生插件 v0.3.1。**P6-A 双节点共享模型与真实五轮双向讨论验收 PASS**；全 P6 第三节点及多节点验收尚未实施。本轮仅两节点，不引入 Subagent 或新的自动化授权。下文保留 v0.3.0 失败经过，修复与当前结果见末节。
 
 ## 行为与边界
 
@@ -26,11 +26,11 @@ Host 从正在运行的持久轮次读取身份，核对路由、根 Session、�
 
 ## API 核对
 
-实际环境：DSH Desktop/SDK/llm 0.2.1-rc.3，Cordis 4.0.5；本机安装的 `dsh-llm-pi-ai` 为 0.1.6-alpha.2。项目 Node 24.14.0，Desktop bundled Node 24.21.0。
+实际环境：DSH Desktop 文件版本与项目 SDK 为 0.2.1-rc.3，项目 Cordis 4.0.5；本机 Profile 依赖目录中的 `dsh-llm` 与 `dsh-llm-pi-ai` 为 0.1.6-alpha.2，目录包版本不等于 Desktop 安装器版本。项目 Node 24.14.0，Desktop bundled Node 24.21.0。
 
 对照已安装 `dsh-llm/lib/types/index.d.ts` 的 `listProviders`、`listModels`、`resolveModelInfo`、`prepareCall`、`LlmAdapter` 与 retry policy；对照已安装 pi-ai 适配器的 prepare/stream、context 与失败映射实现。官方参考：[LLM 服务](https://github.com/deepseek-ai/deepseek-harness/tree/master/packages/llm/llm)、[pi-ai 适配器](https://github.com/deepseek-ai/deepseek-harness/tree/master/packages/llm/llm-pi-ai)。在线 master 可变化，实现以以上安装版本为准；未修改用户 Provider 配置。
 
-## 验收结果
+## v0.3.0 首次验收结果（历史）
 
 | 用例 | 实际结果 | 结论 |
 |---|---|---|
@@ -61,8 +61,30 @@ npx tsx --test tests/shared-models.live.acceptance.ts
 
 该命令会调用真实模型，不能对 unknown 实例直接重放。测试保存时间戳证据至忽略目录 `.dmn/evidence/`；历史首轮证据为 `shared-models-live.json`。真实消息、SDK 历史、截图和用户配置不随仓库发布。
 
-## 残留项
+## v0.3.0 遗留问题（后续修复见下节）
 
 GLM 的 INVALID_REQUEST 具体请求字段/部署兼容性仍待定位，不能据此认定认证失败，也不能认定是模型无回复。应先核对该 Provider 在 DSH 自身的相同模型可用性及请求能力，再在新批准的有界验收中复测；本轮不修改用户 Provider 设置、不放宽输出协议、不重放未知调用。共享路径的跨 Provider 真正双向多轮与恢复验收通过之前，不宣称 P6 已完成。
 
 初始化数据库后、receipt 写入前断电会留下隔离目标；不会自动删除或覆盖。Host 仅本机能力控制，不提供对同 OS 用户恶意代码的安全沙箱。目录中可解析不代表模型适合严格 JSON，也不代表所有适配器都支持历史 reasoning 重放或当前 token 上限。
+
+## v0.3.1 修复与当前验收（2026-10-29）
+
+新增安全诊断仅保存固定词表、有限 HTTP 状态及 [Z.AI 官方业务码](https://docs.z.ai/api-reference/api-code)。用两个全新单次调用实例排查，分别得到 TRANSPORT 与 HTTP 400 / 1210，后者提及 model、thinking；两者仍按 unknown 隔离，不重放。首次批次累计 5 次活动的上限用完，没有隐式补轮。
+
+定位到 Host → SDK 模型信息遗漏 `reasoning`。该 GLM 的精确元数据列表是 low/high/max，不提供 off，Profile 也未设默认；底层 pi-ai 却在请求没有 effort 时发送 disabled thinking。共享层现在完整传递该能力并保留已设置默认；无默认且无 off 时才选有序列表首个等级，允许 off 时不主动改变默认。没有按 GLM 名称写特例，也没有改用户 Provider 配置。思考消耗仍包含在原单次输出上限内。
+
+先验证元数据默认/拒绝无效默认的单元测试，再用真实 SDK + 模拟 Host 验证最终 prepareCall 收到 low、同根 resume 与五轮停止。修复后另行明确最多 5 次调用、每次 32768 输入/1024 输出、45 秒、总计 1.25 估算单位、无重试，创建全新的 GLM A + DeepSeek Account Flash B 群聊执行：
+
+| 验收 | 结果 |
+|---|---|
+| `npm run check` | PASS |
+| `npm test` | 137 PASS，含思考能力贯穿真实 SDK / Host prepareCall |
+| `npm run test:desktop-native` | 18 PASS，新增默认等级与诊断脱敏测试 |
+| `npm run test:native:ui` | 1 PASS，选择、响应丢失、窄屏回归 |
+| 真实 GLM ↔ DeepSeek Account Flash | 5 次活动全部 completed，4 条交替双向消息，0 failed / unknown |
+| 固定独立根与 SDK 证明 | 两节点首次 resume=false，后三轮 resume=true；五轮独立日志 inspector 全部 completed |
+| 预算停止 | paused / TOTAL_TURNS，5/5 次，无第六次调用；最后一轮越界 send 被抑制 |
+
+本地真实证据为 `.dmn/evidence/shared-models-1793262664547.json`，含两条固定根、五次完成证明、方向和实际消息。真实记录不发布至 GitHub。修复前累计 5 次、修复后独立验收 5 次，共 10 次活动；计费结果不等同于活动数或估算额度。旧失败实例和 default 数据均保留，安装器在更新前生成成套备份。
+
+当前 P6-A 的这两条路由本地技术验收通过，其他模型、第三节点、公平调度、跨 Provider 运行中断电恢复及 24 小时长稳仍 NOT_RUN；不把本次结果当作全 P6 完成。短暂传输故障依然可能出现，旧 unknown 不因修复而自动完成、退还预算或重放。无 SQL 迁移，仍使用 v8；发布包增加两个 Host 辅助模块，回滚保留整个旧发布目录及成套数据。

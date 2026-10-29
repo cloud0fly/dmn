@@ -10,7 +10,7 @@ powershell -NoProfile -File scripts/install-native.ps1
 
 需要先正常退出 Desktop，并安装 Node 24.14+（24.x）与 npm；安装器自动 npm ci、构建、版本检查和官方 CLI 注册。本目录不能单独 npm pack 后安装：服务、SDK、模板和锁文件位于完整源码包内。升级保留原数据路径，停机生成成套备份；卸载使用同一脚本 -Mode uninstall，保留消息、记忆、根会话与配置。
 
-启动后点击左侧“群聊”。v0.3.0 顶部“选择模型”共享 DSH 已注册文本模型，为 A/B 分别选择 Provider/model，复用宿主凭据；应用会创建新群聊，保留旧数据库/根会话/私有记忆，仅复制各自系统提示词，旧群聊可切回。选择与应用均不推理。目录存在不代表模型真实生成已验证；DeepSeek Account 单轮成功，GLM 当前返回 INVALID_REQUEST，跨 Provider 多轮验收仍未通过。
+启动后点击左侧“群聊”。顶部“选择模型”共享 DSH 已注册文本模型，为 A/B 分别选择 Provider/model，复用宿主凭据；应用会创建新群聊，保留旧数据库/根会话/私有记忆，仅复制各自系统提示词，旧群聊可切回。选择与应用均不推理。v0.3.1 修复模型思考参数兼容问题，GLM 与 DeepSeek Account 五轮真实双向讨论及预算停止已通过；目录内其他模型未逐一验证。
 
 原生面板和官方设置的“群聊”页配置数据库绝对路径、日志目录及旧模式凭据引用。旧模式的新密钥仅写入官方 DSH 凭据服务；普通设置文件只保存引用，留空保留原密钥。默认引用 DMN_DEEPSEEK_API_KEY，回退到启动环境 DEEPSEEK_API_KEY。共享模式不将 Provider 凭据复制到节点 SDK。
 

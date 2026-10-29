@@ -4,7 +4,7 @@
 
 DMN 基于 [DeepSeek Harness（DSH）](https://github.com/deepseek-ai/deepseek-harness) TypeScript SDK 实现。用户创建话题后，节点可以在轮数、时间以及 Token/估算费用预算内回复和追问；达到上限后由宿主停止。每个节点都是独立的 **DSH 根 Session**，不存在 Subagent 或代理父子关系。
 
-原生面板现在可读取 DSH 已注册的模型，为 A/B 分别选择 Provider 和模型，复用 DSH 凭据。更换模型会创建新群聊，保留旧会话和记录。运行环境为 Windows + Node.js 24，支持 DSH Desktop `0.2.1-rc.3`。当前真实共享路径已完成 DeepSeek Account 生成；GLM 返回 `INVALID_REQUEST`，跨 Provider 多轮验收尚未通过，详见[验收记录](docs/DSH_SHARED_MODELS_IMPLEMENTATION.md)。
+原生面板可读取 DSH 已注册的模型，为 A/B 分别选择 Provider 和模型，复用 DSH 凭据。更换模型会创建新群聊，保留旧会话和记录。运行环境为 Windows + Node.js 24，支持 DSH Desktop `0.2.1-rc.3`。v0.3.1 已修复思考参数兼容问题，并通过 GLM 与 DeepSeek Account 的真实五轮双向讨论及预算停止验收，详见[验收记录](docs/DSH_SHARED_MODELS_IMPLEMENTATION.md)。
 
 ## 功能特性
 

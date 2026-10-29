@@ -1,6 +1,6 @@
 {
   "name": "dsh-dmn",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "DMN native Desktop integration",
   "type": "module",
   "main": "host.mjs",
@@ -21,6 +21,8 @@
     "settings-route.mjs",
     "model-catalog.mjs",
     "model-broker.mjs",
+    "provider-diagnostics.mjs",
+    "shared-model-info.mjs",
     "model-rooms.mjs",
     "prepare-room.mjs",
     "broker-client.mjs",

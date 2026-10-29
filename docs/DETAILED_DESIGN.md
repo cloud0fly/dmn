@@ -272,6 +272,8 @@ P5 落地采用受信任操作员 CLI、停机成套备份、原位且不覆盖�
 
 按 `docs/IMPLEMENTATION_PLAN.md` 分阶段开发，完整测试见 `tests/ACCEPTANCE.md`。成功最小闭环：用户开启话题，A→B→A 至少 5 轮；各节点保留独立 Session 与私有记忆；重启后能按当前版本能力恢复；达到预算自动停止；无 Subagent。
 
+2026-10-29 补充：P6-A 已按用户授权接入 DSH Host 共享模型目录、受控生成代理和双节点模型选择，GLM 与 DeepSeek Account 五轮真实双向讨论、固定独立根 resume 及预算停止通过。精确模型思考能力随元数据传入隔离 SDK；模型不允许 off 且无默认时采用其最低可选等级，Token 硬上限不变。全 P6 的第三节点及多节点验收仍未实施；当前事实以 [P6-A 报告](DSH_SHARED_MODELS_IMPLEMENTATION.md) 为准。
+
 ## 12. 来源与验证点
 
 - [DSH Architecture](https://github.com/deepseek-ai/deepseek-harness/blob/master/docs/architecture.md)：Cordis、Profile、插件树。
